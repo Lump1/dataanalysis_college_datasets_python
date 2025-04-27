@@ -8,7 +8,7 @@ Ensure you have Python installed. You can download it from [python.org](https://
 1. **Clone the repository** (if applicable):
    ```bash
    git clone https://github.com/Lump1/DA_Pr_3.git
-   cd DA_Pr_3
+   cd DataAnalysis_college_datasets_python
    ```
 
 2. **Install dependencies:**
