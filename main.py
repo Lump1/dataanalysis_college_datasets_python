@@ -12,7 +12,7 @@ def main():
     # gp.task_5()
 
     while True:
-        print('Select option below \n 1: Task 1 \n 2: Task 2 \n 3.1: Task 3, 1 subtask \n 3.2: Task 3, 2 subtask \n 3.3: Task 3, 3 subtask\n 4: Task 4\n 5: Task 5\n 6: Exit\n')
+        print('Select option below \n 1: Task 1 \n 2: Task 2 \n 3.1: Task 3, 1 subtask \n 3.2: Task 3, 2 subtask \n 3.3: Task 3, 3 subtask\n 4: Task 4\n 5: Task 5\n indz1: Task indz 1\n indz2: Task indz 2\n 6: Exit\n')
         selectedOption = input("Ur choise: ")
         match selectedOption:
             case '1':
@@ -29,6 +29,10 @@ def main():
                 gp.task_4("https://raw.githubusercontent.com/x5or6/A-Visual-History-of-Nobel-Prize-Winners/master/archive.csv")
             case '5':
                 gp.task_5()
+            case 'indz1':
+                gp.task_indz_1("titanic.csv")
+            case 'indz2':
+                gp.task_indz_2("Seed_Data.csv")
             case '6':
                 break
             case _:

@@ -7,6 +7,10 @@ import statsmodels.tsa.stattools as stattools
 import calmap
 import plotly.express as px
 from gapminder import gapminder
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 def task_1(dataUrl: str) -> None :
     sns.set_style("whitegrid")
@@ -191,3 +195,71 @@ def task_5():
 
     scatter_fig.show()
     line_fig.show()
+
+
+def task_indz_1(dataUrl: str):
+    dataset = ld.loadDatasetLocal(dataUrl)
+    print(dataset)
+
+    sections = {
+        "Head": dataset.head(),
+        "Shape": dataset.shape,
+        "Dtypes": dataset.dtypes,
+        "Missing values": dataset.isnull().sum(),
+        "Describe": dataset.describe(),
+        "Survived distribution": dataset['Survived'].value_counts(normalize=True) * 100,
+        "Sex distribution": dataset['Sex'].value_counts(),
+        "Embarked distribution": dataset['Embarked'].value_counts(),
+        "Pclass distribution": dataset['Pclass'].value_counts()
+    }
+
+    for title, content in sections.items():
+        print(f"\n--- {title} ---\n")
+        print(content)
+
+def task_indz_2(dataUrl: str):
+    dataset = ld.loadDatasetLocal(dataUrl)
+    print(dataset)
+
+    sections = {
+        "Head": dataset.head(),
+        "Shape": dataset.shape,
+        "Dtypes": dataset.dtypes,
+        "Missing values": dataset.isnull().sum(),
+        "Describe": dataset.describe(),
+        "Target distribution": dataset['target'].value_counts()
+    }
+
+    for title, content in sections.items():
+        print(f"\n--- {title} ---\n")
+        print(content)
+    
+    cluster_and_visualize(dataset)
+
+
+def cluster_and_visualize(dataset: pd.DataFrame, n_clusters: int = 3):
+    X = dataset.drop(columns=['target'])
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    cluster_labels = kmeans.fit_predict(X_scaled)
+
+    sil_score = silhouette_score(X_scaled, cluster_labels)
+    ari_score = adjusted_rand_score(dataset['target'], cluster_labels)
+
+    print(f"Silhouette Score: {sil_score:.4f}")
+    print(f"Adjusted Rand Index: {ari_score:.4f}")
+
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X_scaled)
+
+    plt.figure(figsize=(8,6))
+    sns.scatterplot(x=X_pca[:, 0], y=X_pca[:, 1], hue=cluster_labels, palette='viridis', s=60)
+    plt.title("Кластери після PCA")
+    plt.xlabel("PCA 1")
+    plt.ylabel("PCA 2")
+    plt.legend(title='Кластери')
+    plt.grid(True)
+    plt.show()

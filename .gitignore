@@ -10,6 +10,8 @@ __pycache__/
 # C extensions
 *.so
 *.csv
+!titanic.csv
+!Seed_Data.csv
 
 # Distribution / packaging
 .Python
