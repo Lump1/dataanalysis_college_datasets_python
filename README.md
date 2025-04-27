@@ -1,4 +1,4 @@
-# Data Analysis Pract Project 3
+# Data Analysis Pract
 
 ## Prerequisites
 Ensure you have Python installed. You can download it from [python.org](https://www.python.org/downloads/).
