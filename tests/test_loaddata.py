@@ -1,11 +1,11 @@
 import sys
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pytest
 import tempfile
 import pandas as pd
 
-from loaddata import loadDataset, loadDatasetLocal, getDatasetName
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))  # noqa
+from loaddata import loadDataset, loadDatasetLocal, getDatasetName  # noqa
 
 
 @pytest.fixture
