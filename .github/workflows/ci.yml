@@ -20,14 +20,22 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v3
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Set up Python environment
+        run: |
+          pip install -r requirements.txt
+          pip install flake8 pytest
+
       - name: Run static code analysis
         run: |
-          pip install flake8 
           flake8 ./
 
       - name: Run unit tests
         run: |
-          pip install -r requirements.txt  
           pytest tests/
 
       - name: Build Docker Image
@@ -39,11 +47,11 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.CICDPIPELINE_TOKEN }}
 
       - name: Push Docker Image
         run: |
-          docker push ghcr.io/Lump1/DataAnalysis_college_datasets_python:latest:latest
+          docker push ghcr.io/Lump1/DataAnalysis_college_datasets_python:latest
 
       - name: Notify Slack
         uses: slackapi/slack-github-action@v1.23.0
