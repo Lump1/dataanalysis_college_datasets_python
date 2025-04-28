@@ -5,21 +5,25 @@ import pandas as pd
 
 from loaddata import loadDataset, loadDatasetLocal, getDatasetName
 
+
 @pytest.fixture
 def temp_dir():
     with tempfile.TemporaryDirectory() as tmpdir:
         yield tmpdir
+
 
 def test_getDatasetName_short_url():
     url = "http://example.com/data.csv"
     name = getDatasetName(url)
     assert name == "data.csv"
 
+
 def test_getDatasetName_long_url():
-    url = "http://example.com/" + "a"*25
+    url = "http://example.com/" + "a" * 25
     name = getDatasetName(url)
     assert name.endswith(".csv")
     assert len(name) == 16
+
 
 def test_loadDataset(temp_dir):
     from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -36,12 +40,15 @@ def test_loadDataset(temp_dir):
     thread.start()
 
     try:
-        df = loadDataset("http://localhost:8000/sample.csv", workspace=temp_dir)
+        df = loadDataset(
+            "http://localhost:8000/sample.csv",
+            workspace=temp_dir)
         assert isinstance(df, pd.DataFrame)
         assert df.shape == (2, 2)
     finally:
         server.shutdown()
         thread.join()
+
 
 def test_loadDatasetLocal(temp_dir):
     csv_content = "col1,col2\n5,6\n7,8\n"
