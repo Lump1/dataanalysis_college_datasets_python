@@ -13,39 +13,50 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 
-def task_1(dataUrl: str) -> None:
+def task_1(dataUrl: str) -> str:
     sns.set_style("whitegrid")
+
+    # Load dataset
     dataset = ld.loadDataset(dataUrl)
 
-    print(dataset)
+    print(dataset.columns)
 
-    plt.figure(figsize=(10, 6))
-    scatter = sns.scatterplot(
-        data=dataset, x="bmi", y="charges", hue="smoker",
-        palette={"yes": "red", "no": "blue"}, alpha=0.6
-    )
-    scatter.ax
+    if 'bmi' in dataset.columns and 'charges' in dataset.columns:
+        plt.figure(figsize=(10, 6))
+        scatter = sns.scatterplot(
+            data=dataset, x="bmi", y="charges", hue="smoker",
+            palette={"yes": "red", "no": "blue"}, alpha=0.6
+        )
+        scatter.ax
+        plt.title("Залежність між ІМТ та медичними витратами з урахуванням статусу курця")
+        plt.xlabel("Індекс маси тіла (BMI)")
+        plt.ylabel("Медичні витрати (USD)")
+        plt.legend(title="Куріння")
 
-    plt.title(
-        "Залежність між ІМТ та медичними витратами з урахуванням статусу курця")
-    plt.xlabel("Індекс маси тіла (BMI)")
-    plt.ylabel("Медичні витрати (USD)")
-    plt.legend(title="Куріння")
+    else:
+        plt.figure(figsize=(10, 6))
+        sns.lineplot(data=dataset, x="Date", y="Value", hue="Sex")
+        plt.title("Залежність між Датою і Значенням по Статтю")
+        plt.xlabel("Дата")
+        plt.ylabel("Значення")
+        plt.legend(title="Стать")
 
-    plt.show()
+    image_path = "task_1_plot.png"
+    plt.savefig(image_path)
+    plt.close()
+
+    return image_path
 
 
-def task_2(dataUrl: str) -> None:
+def task_2(dataUrl: str) -> str:
     dataset = ld.loadDataset(
-        dataUrl, "temp.csv", colNames=[
-            "timestamp", "temperature"], skip=10)
-    print(dataset.head())
+        dataUrl, "temp.csv", colNames=["timestamp", "temperature"], skip=10)
+
     dataset["timestamp"] = pd.to_datetime(
         dataset["timestamp"], format="%Y%m%dT%H%M")
     dataset["date"] = dataset["timestamp"].dt.date
 
     daily_min = dataset.groupby("date")["temperature"].min().reset_index()
-
     daily_min["year"] = pd.to_datetime(daily_min["date"]).dt.year
     daily_min["week"] = pd.to_datetime(daily_min["date"]).dt.strftime("%U")
 
@@ -57,11 +68,8 @@ def task_2(dataUrl: str) -> None:
         values="temperature")
     weekly_pivot.index = pd.to_datetime(weekly_pivot.index).strftime("%a")
 
-    print(dataset)
-
-    markers = ['o', 's', 'D', 'v', '^']
-
     plt.figure(figsize=(10, 5))
+    markers = ['o', 's', 'D', 'v', '^']
 
     for i, year in enumerate(weekly_pivot.columns):
         plt.plot(weekly_pivot.index,
@@ -76,7 +84,10 @@ def task_2(dataUrl: str) -> None:
     plt.legend()
     plt.grid(True)
 
-    plt.show()
+    output_path = "task_2_chart.png"
+    plt.savefig(output_path)
+    plt.close()
+    return output_path
 
 
 def task_3(dataUrl: str) -> None:

@@ -40,7 +40,13 @@ jobs:
         run: flake8 ./
 
       - name: Run unit tests
-        run: pytest tests/
+        run: pytest tests/unit
+
+      - name: Run acceptance tests
+        run: pytest tests/acceptance
+
+      - name: Run integration tests
+        run: pytest tests/integration
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

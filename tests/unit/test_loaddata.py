@@ -4,7 +4,7 @@ import pytest
 import tempfile
 import pandas as pd
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))  # noqa
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))  # noqa
 from loaddata import loadDataset, loadDatasetLocal, getDatasetName  # noqa
 
 

@@ -13,23 +13,26 @@ def loadDataset(
         colNames=None,
         skip=0) -> pd.DataFrame:
     print(datasetName)
+
     if datasetName is None or datasetName == "None":
         datasetName = getDatasetName(url)
 
-    res = requests.get(url, allow_redirects=True)
-    fullpath = os.path.join(workspace, datasetName)
+    if os.path.isfile(url):
+        fullpath = url
+    else:
+        res = requests.get(url, allow_redirects=True)
+        fullpath = os.path.join(workspace, datasetName)
 
-    with open(fullpath, 'wb') as file:
-        file.write(res.content)
+        with open(fullpath, 'wb') as file:
+            file.write(res.content)
 
-    return (
-        pd.read_csv(
-            fullpath,
-            on_bad_lines='skip',
-            usecols=columnsToRender,
-            names=colNames,
-            skiprows=skip,
-            engine="python"))
+    return pd.read_csv(
+        fullpath,
+        on_bad_lines='skip',
+        usecols=columnsToRender,
+        names=colNames,
+        skiprows=skip,
+        engine="python")
 
 
 def loadDatasetLocal(datasetName: str, workspace: str = "./data"):

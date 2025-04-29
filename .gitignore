@@ -12,6 +12,9 @@ __pycache__/
 *.csv
 !titanic.csv
 !Seed_Data.csv
+*.png
+*.jpeg
+
 
 # Distribution / packaging
 .Python
