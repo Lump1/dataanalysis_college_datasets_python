@@ -9,8 +9,31 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+
     steps:
+      # - name: Checkout repository
+      #   uses: actions/checkout@v4
+
+      # - name: Set up Kubernetes config
+      #   run: |
+      #     echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+      #     export KUBECONFIG=$(pwd)/kubeconfig.yaml
+
       - name: Deploy to Kubernetes
         run: |
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
+
+      # - name: Healthcheck service
+      #   run: |
+      #     echo "Waiting for service to become available..."
+      #     for i in {1..10}; do
+      #       if curl --fail http://your-service-url/health; then
+      #         echo "+ Service is up!"
+      #         exit 0
+      #       fi
+      #       echo "= Waiting for service..."
+      #       sleep 5
+      #     done
+      #     echo "- Service failed to start after deployment!"
+      #     exit 1
