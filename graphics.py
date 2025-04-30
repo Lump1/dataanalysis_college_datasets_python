@@ -281,47 +281,131 @@ def task_5():
 
 def task_indz_1(dataUrl: str):
     dataset = ld.loadDatasetLocal(dataUrl)
-    print(dataset)
 
-    sections = {
-        "Head": dataset.head(),
-        "Shape": dataset.shape,
-        "Dtypes": dataset.dtypes,
-        "Missing values": dataset.isnull().sum(),
-        "Describe": dataset.describe(),
-        "Survived distribution": dataset['Survived'].value_counts(
-            normalize=True) * 100,
-        "Sex distribution": dataset['Sex'].value_counts(),
-        "Embarked distribution": dataset['Embarked'].value_counts(),
-        "Pclass distribution": dataset['Pclass'].value_counts()}
+    print("\n--- Перші рядки ---")
+    print(dataset.head())
 
-    for title, content in sections.items():
-        print(f"\n--- {title} ---\n")
-        print(content)
+    print("\n--- Розмірність ---")
+    print(dataset.shape)
+
+    print("\n--- Типи даних ---")
+    print(dataset.dtypes)
+
+    print("\n--- Пропущені значення ---")
+    print(dataset.isnull().sum())
+
+    print("\n--- Статистичний опис ---")
+    print(dataset.describe())
+
+    print("\n--- Розподіл 'Survived' (%) ---")
+    print(dataset['Survived'].value_counts(normalize=True) * 100)
+
+    for col in ['Sex', 'Pclass', 'Embarked']:
+        if col in dataset.columns:
+            print(f"\n--- Розподіл {col} ---")
+            print(dataset[col].value_counts())
+
+    missing = dataset.isnull().sum()
+    missing = missing[missing > 0]
+    if not missing.empty:
+        print("\n--- Детальний аналіз пропущених значень ---")
+        print(missing.sort_values(ascending=False))
+
+    numeric_cols = dataset.select_dtypes(include='number').columns.tolist()
+    for col in numeric_cols:
+        sns.histplot(dataset[col].dropna(), kde=True)
+        plt.title(f"Розподіл {col}")
+        plt.xlabel(col)
+        plt.ylabel("Кількість")
+        plt.show()
+
+    for col in numeric_cols:
+        if col != 'Survived':
+            sns.boxplot(x='Survived', y=col, data=dataset)
+            plt.title(f"{col} за класами 'Survived'")
+            plt.xlabel("Вижив")
+            plt.ylabel(col)
+            plt.show()
+
+    for col in ['Age', 'Fare']:
+        if col in dataset.columns:
+            sns.violinplot(x='Survived', y=col, data=dataset)
+            plt.title(f"Розподіл {col} залежно від виживання")
+            plt.xlabel("Вижив")
+            plt.ylabel(col)
+            plt.show()
+
+    for col in ['Sex', 'Pclass', 'Embarked']:
+        if col in dataset.columns:
+            survived_by_cat = pd.crosstab(dataset[col], dataset['Survived'], normalize='index') * 100
+            survived_by_cat.plot(kind='bar', stacked=True)
+            plt.title(f"Виживання залежно від {col}")
+            plt.ylabel("Відсоток")
+            plt.xlabel(col)
+            plt.legend(title='Вижив')
+            plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(dataset.corr(numeric_only=True), annot=True, cmap='coolwarm', fmt='.2f')
+    plt.title("Матриця кореляції")
+    plt.show()
 
 
 def task_indz_2(dataUrl: str):
     dataset = ld.loadDatasetLocal(dataUrl)
-    print(dataset)
 
-    sections = {
-        "Head": dataset.head(),
-        "Shape": dataset.shape,
-        "Dtypes": dataset.dtypes,
-        "Missing values": dataset.isnull().sum(),
-        "Describe": dataset.describe(),
-        "Target distribution": dataset['target'].value_counts()
-    }
+    print("\n--- Перші рядки ---")
+    print(dataset.head())
 
-    for title, content in sections.items():
-        print(f"\n--- {title} ---\n")
-        print(content)
+    print("\n--- Розмірність ---")
+    print(dataset.shape)
+
+    print("\n--- Типи даних ---")
+    print(dataset.dtypes)
+
+    print("\n--- Пропущені значення ---")
+    print(dataset.isnull().sum())
+
+    print("\n--- Статистичний опис ---")
+    print(dataset.describe())
+
+    print("\n--- Розподіл цільової змінної ---")
+    print(dataset['target'].value_counts())
+
+    numeric_cols = dataset.select_dtypes(include='number').columns.drop('target', errors='ignore')
+    for col in numeric_cols:
+        sns.histplot(dataset[col], kde=True)
+        plt.title(f"Розподіл {col}")
+        plt.xlabel(col)
+        plt.ylabel("Кількість")
+        plt.show()
+
+        sns.boxplot(x='target', y=col, data=dataset)
+        plt.title(f"{col} за класами target")
+        plt.xlabel("Клас")
+        plt.ylabel(col)
+        plt.show()
+
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(dataset.corr(numeric_only=True), annot=True, cmap='coolwarm', fmt='.2f')
+    plt.title("Матриця кореляції")
+    plt.show()
+
+    if len(numeric_cols) <= 6:
+        sns.pairplot(dataset, hue='target')
+        plt.suptitle("Парні графіки ознак", y=1.02)
+        plt.show()
 
     cluster_and_visualize(dataset)
 
 
 def cluster_and_visualize(dataset: pd.DataFrame, n_clusters: int = 3):
+    if 'target' not in dataset.columns:
+        print("Цільова змінна 'target' не знайдена у наборі даних.")
+        return
+
     X = dataset.drop(columns=['target'])
+    X = pd.get_dummies(X, drop_first=True)
 
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -332,8 +416,8 @@ def cluster_and_visualize(dataset: pd.DataFrame, n_clusters: int = 3):
     sil_score = silhouette_score(X_scaled, cluster_labels)
     ari_score = adjusted_rand_score(dataset['target'], cluster_labels)
 
-    print(f"Silhouette Score: {sil_score:.4f}")
-    print(f"Adjusted Rand Index: {ari_score:.4f}")
+    print(f"\nКоефіцієнт силуету: {sil_score:.4f}")
+    print(f"Індекс скоригованої випадковості (ARI): {ari_score:.4f}")
 
     pca = PCA(n_components=2)
     X_pca = pca.fit_transform(X_scaled)
