@@ -8,14 +8,15 @@ on:
     branches:
       - main
   schedule:
-    - cron: "0 0 * * *" # кожен день о 00:00
+    - cron: "0 0 * * *"
 
 jobs:
-  build:
+  test-matrix:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     runs-on: ${{ matrix.os }}
+    name: Run tests on ${{ matrix.os }}
 
     steps:
       - name: Checkout repository
@@ -25,14 +26,6 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
@@ -50,6 +43,15 @@ jobs:
 
       - name: Run integration tests
         run: pytest tests/integration
+
+  docker-build:
+    needs: test-matrix
+    runs-on: ubuntu-latest
+    name: Docker build and push (Linux only)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -74,7 +76,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "+ CI pipeline build completed successfully!"
+              "text": "+ Docker build succeeded!"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
@@ -85,7 +87,7 @@ jobs:
         with:
           payload: |
             {
-              "text": "- CI pipeline build failed!"
+              "text": "- Docker build failed!"
             }
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
