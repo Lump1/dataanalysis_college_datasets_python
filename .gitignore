@@ -12,6 +12,7 @@ __pycache__/
 *.csv
 !titanic.csv
 !Seed_Data.csv
+!winequality-red.csv
 *.png
 *.jpeg
 

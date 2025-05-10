@@ -1,14 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from sklearn.mixture import GaussianMixture
+from itertools import cycle, islice
 import loaddata as ld
 import pandas as pd
 import statsmodels.tsa.stattools as stattools
 import calmap
 import plotly.express as px
 from gapminder import gapminder
-from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score, adjusted_rand_score
+from sklearn.cluster import DBSCAN, AgglomerativeClustering, KMeans
+from sklearn.metrics import calinski_harabasz_score, davies_bouldin_score, fowlkes_mallows_score, normalized_mutual_info_score, silhouette_score, adjusted_rand_score, v_measure_score
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
@@ -430,4 +432,108 @@ def cluster_and_visualize(dataset: pd.DataFrame, n_clusters: int = 3):
     plt.ylabel("PCA 2")
     plt.legend(title='Кластери')
     plt.grid(True)
+    plt.show()
+
+
+def task_2_pract_4(dataUrl: str):
+    dataset = ld.loadDatasetLocal(dataUrl)
+    results_df = run_clustering_evaluation(dataset)
+
+    print(results_df)
+
+    visualize_clustering_algorithms(dataset)
+
+
+def evaluate_clustering(X, y_true, y_pred):
+    metrics = {
+        "Adjusted Rand Index": adjusted_rand_score(y_true, y_pred),
+        "Mutual Info (NMI)": normalized_mutual_info_score(y_true, y_pred),
+        "V-measure": v_measure_score(y_true, y_pred),
+        "Fowlkes-Mallows": fowlkes_mallows_score(y_true, y_pred),
+        "Silhouette Score": silhouette_score(X, y_pred),
+        "Calinski-Harabasz": calinski_harabasz_score(X, y_pred),
+        "Davies-Bouldin": davies_bouldin_score(X, y_pred),
+    }
+    return metrics
+
+
+def run_clustering_evaluation(df, target_column="quality", n_clusters=6):
+    X = df.drop(columns=[target_column])
+    y = df[target_column]
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    algorithms = {
+        "KMeans": KMeans(n_clusters=n_clusters, random_state=42),
+        "Agglomerative": AgglomerativeClustering(n_clusters=n_clusters),
+        "DBSCAN": DBSCAN(eps=1.5, min_samples=5),
+        "GMM": GaussianMixture(n_components=n_clusters, random_state=42),
+    }
+
+    results = {}
+    for name, algorithm in algorithms.items():
+        if name == "GMM":
+            y_pred = algorithm.fit_predict(X_scaled)
+        else:
+            algorithm.fit(X_scaled)
+            y_pred = algorithm.labels_
+
+        results[name] = evaluate_clustering(X_scaled, y, y_pred)
+
+    return pd.DataFrame(results).T
+
+
+def visualize_clustering_algorithms(df, target_column="quality", n_clusters=6):
+    X = df.drop(columns=[target_column])
+
+    X_scaled = StandardScaler().fit_transform(X)
+
+    pca = PCA(n_components=2)
+    X_2d = pca.fit_transform(X_scaled)
+
+    algorithms = {
+        "KMeans": KMeans(n_clusters=n_clusters, random_state=42),
+        "Agglomerative": AgglomerativeClustering(n_clusters=n_clusters),
+        "DBSCAN": DBSCAN(eps=1.5, min_samples=5),
+        "GMM": GaussianMixture(n_components=n_clusters, random_state=42),
+    }
+
+    color_list = list(
+        islice(
+            cycle([
+                "#377eb8", "#ff7f00", "#4daf4a", "#f781bf",
+                "#a65628", "#984ea3", "#999999", "#e41a1c", "#dede00"
+            ]),
+            n_clusters + 1
+        )
+    )
+    colors = np.array(color_list)
+
+    plt.figure(figsize=(4 * len(algorithms), 4))
+
+    for i, (name, algorithm) in enumerate(algorithms.items(), 1):
+        if name == "GMM":
+            y_pred = algorithm.fit_predict(X_scaled)
+        else:
+            algorithm.fit(X_scaled)
+            y_pred = algorithm.labels_
+
+        plt.subplot(1, len(algorithms), i)
+        unique_labels = np.unique(y_pred)
+        for label in unique_labels:
+            plt.scatter(
+                X_2d[y_pred == label, 0],
+                X_2d[y_pred == label, 1],
+                s=10,
+                color=colors[label % len(colors)],
+                label=f"Cluster {label}" if label != -1 else "Outlier",
+            )
+        plt.title(name, fontsize=14)
+        plt.xticks([])
+        plt.yticks([])
+        plt.legend(fontsize=8, loc="upper right")
+
+    plt.suptitle("Clustering Results (PCA Projection)", fontsize=16)
+    plt.tight_layout(rect=[0, 0, 1, 0.95])
     plt.show()
