@@ -1,6 +1,7 @@
 import sys
 import graphics as gp
 
+
 def main():
     if len(sys.argv) < 2:
         print("No task selected. Usage: python main.py <task_id>")
@@ -34,6 +35,6 @@ def main():
         case _:
             print("Invalid option:", selectedOption)
 
+
 if __name__ == "__main__":
     main()
-
